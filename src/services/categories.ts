@@ -2,6 +2,7 @@ import { axiosService } from './axios';
 import { configManager } from '../config';
 import { ENDPOINTS, API } from '../env';
 import { AxiosError } from 'axios';
+import { URLBuilder } from '../utils/urlBuilder';
 
 export interface Subcategory {
   id: string;
@@ -45,7 +46,7 @@ export class CategoriesService {
 
   public async getCategories(): Promise<Category[]> {
     try {
-      const url = new URL(`${API.BASE_URL}/${API.VERSION}/${ENDPOINTS.CATEGORIES.LIST}`);
+      const url = URLBuilder.forCategories().build();
       const response = await axiosService.getInstance().get<CategoryResponse>(url.toString());
       return response.data.data;
     } catch (error) {
@@ -59,7 +60,7 @@ export class CategoriesService {
 
   public async getCategoryById(id: string): Promise<Category> {
     try {
-      const url = new URL(`${API.BASE_URL}/${API.VERSION}/${ENDPOINTS.CATEGORIES.DETAIL.replace(':id', id)}`);
+      const url = URLBuilder.forCategoryDetail(id).build();
       const response = await axiosService.getInstance().get<{ data: Category }>(url.toString());
       return response.data.data;
     } catch (error) {

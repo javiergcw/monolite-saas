@@ -2,6 +2,7 @@ import { axiosService } from './axios';
 import { configManager } from '../config';
 import { ENDPOINTS, API } from '../env';
 import { AxiosError } from 'axios';
+import { URLBuilder } from '../utils/urlBuilder';
 
 export interface Banner {
   id: number;
@@ -37,7 +38,7 @@ export class BannersService {
 
   public async getBanners(): Promise<Banner[]> {
     try {
-      const url = new URL(`${API.BASE_URL}/${API.VERSION}/${ENDPOINTS.BANNERS.LIST}`);
+      const url = URLBuilder.forBanners().build();
       const response = await axiosService.getInstance().get<BannerResponse>(url.toString());
       return response.data.data;
     } catch (error) {
