@@ -52,4 +52,20 @@ export class URLBuilder {
   public static forCategoryDetail(id: string): URLBuilder {
     return new URLBuilder().setPath(ENDPOINTS.CATEGORIES.DETAIL.replace(':id', id));
   }
+
+  public static forProducts(): URLBuilder {
+    return new URLBuilder().setPath(ENDPOINTS.PRODUCTS.LIST);
+  }
+
+  public static forProductDetail(id: string): URLBuilder {
+    return new URLBuilder().setPath(ENDPOINTS.PRODUCTS.DETAIL.replace(':id', id));
+  }
+
+  public static forProductSearch(): URLBuilder {
+    return new URLBuilder().setPath(ENDPOINTS.PRODUCTS.SEARCH);
+  }
+
+  public static forProductFilterBySku(): URLBuilder {
+    return new URLBuilder().setPath(ENDPOINTS.PRODUCTS.FILTER_BY_SKU);
+  }
 } 

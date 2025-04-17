@@ -13,6 +13,12 @@ const ENDPOINTS = {
   CATEGORIES: {
     LIST: 'categories',
     DETAIL: 'categories/:id'
+  },
+  PRODUCTS: {
+    LIST: 'products',
+    DETAIL: 'products/:id',
+    SEARCH: 'products/search',
+    FILTER_BY_SKU: 'products/filter/by-sku'
   }
 } as const;
 

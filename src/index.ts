@@ -16,6 +16,7 @@ export { configManager } from './config';
 export const services = {
   banners: require('./services/banners').bannersService,
   categories: require('./services/categories').categoriesService,
+  products: require('./services/products').productsService,
   axios: require('./services/axios').axiosService,
 };
 
@@ -25,3 +26,11 @@ export const services = {
  */
 export type { Banner } from './services/banners';
 export type { Category, Subcategory } from './services/categories';
+export type { 
+  Product, 
+  ProductFeatures, 
+  ProductSearchResult, 
+  ProductSearchResponse, 
+  ProductFilterBySkuResponse,
+  Pagination 
+} from './services/products';
