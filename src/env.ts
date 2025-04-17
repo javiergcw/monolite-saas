@@ -18,7 +18,8 @@ const ENDPOINTS = {
     LIST: 'products',
     DETAIL: 'products/:id',
     SEARCH: 'products/search',
-    FILTER_BY_SKU: 'products/filter/by-sku'
+    FILTER_BY_SKU: 'products/filter/by-sku',
+    VARIATIONS: 'products/:id/variations'
   }
 } as const;
 

@@ -68,4 +68,8 @@ export class URLBuilder {
   public static forProductFilterBySku(): URLBuilder {
     return new URLBuilder().setPath(ENDPOINTS.PRODUCTS.FILTER_BY_SKU);
   }
+
+  public static forProductVariations(id: string): URLBuilder {
+    return new URLBuilder().setPath(ENDPOINTS.PRODUCTS.VARIATIONS.replace(':id', id));
+  }
 } 

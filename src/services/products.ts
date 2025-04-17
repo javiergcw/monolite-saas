@@ -74,6 +74,15 @@ export interface Product {
   features?: ProductFeatures;
 }
 
+export interface ProductVariation {
+  id: number;
+  product_id: number;
+  sku: string;
+  image_url: string;
+  price: number;
+  stock: number;
+}
+
 export interface ProductSearchResult {
   id: number;
   name: string;
@@ -102,6 +111,11 @@ export interface ProductFilterBySkuResponse {
     pagination: Pagination;
     products: Product[];
   };
+  message: string;
+}
+
+export interface ProductVariationsResponse {
+  data: ProductVariation[];
   message: string;
 }
 
@@ -192,6 +206,23 @@ export class ProductsService {
         include_variations: includeVariations
       });
       return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        throw new Error(`Error del servidor: ${axiosError.response.status}`);
+      }
+      throw new Error('Error de red');
+    }
+  }
+
+  public async getProductVariations(id: number): Promise<ProductVariation[]> {
+    try {
+      const url = URLBuilder.forProductVariations(id.toString())
+        .withTrailingSlash()
+        .build();
+
+      const response = await axiosService.getInstance().get<ProductVariationsResponse>(url.toString());
+      return response.data.data;
     } catch (error) {
       const axiosError = error as AxiosError;
       if (axiosError.response) {

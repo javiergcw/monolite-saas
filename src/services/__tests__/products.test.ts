@@ -3,7 +3,7 @@ import { ProductsService } from '../products';
 import { axiosService } from '../axios';
 import { configManager } from '../../config';
 import { ENDPOINTS, API } from '../../env';
-import type { Product, ProductSearchResult, ProductSearchResponse, ProductFilterBySkuResponse } from '../products';
+import type { Product, ProductSearchResult, ProductSearchResponse, ProductFilterBySkuResponse, ProductVariation } from '../products';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 
 // Mock de axiosService
@@ -379,6 +379,68 @@ describe('ProductsService', () => {
         }
       );
       expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getProductVariations', () => {
+    const mockVariations: ProductVariation[] = [
+      {
+        id: 7,
+        product_id: 2,
+        sku: "123123",
+        image_url: "https://s3.autoxpert.com.co/public/space_20250317074754/file_20250317195846.png",
+        price: 0,
+        stock: 1
+      }
+    ];
+
+    it('debería obtener las variaciones de un producto correctamente', async () => {
+      // Configurar el mock de la respuesta exitosa
+      const mockResponse: AxiosResponse = {
+        data: {
+          data: mockVariations,
+          message: "Consulta realizada correctamente"
+        },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {} as any
+      };
+
+      mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+      // Ejecutar el método y verificar el resultado
+      const result = await productsService.getProductVariations(2);
+      
+      // Verificaciones
+      expect(result).toEqual(mockVariations);
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        'https://api.autoxpert.com.co/v2/products/2/variations/'
+      );
+      expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+    });
+
+    it('debería manejar error 404 al obtener variaciones de un producto', async () => {
+      // Configurar el mock para error 404
+      const error: AxiosError = {
+        response: {
+          status: 404,
+          statusText: 'Not Found',
+          data: { message: 'Recurso no encontrado' },
+          headers: {},
+          config: {} as any
+        },
+        isAxiosError: true,
+        name: 'AxiosError',
+        message: 'Request failed with status code 404',
+        config: {} as any,
+        toJSON: () => ({})
+      };
+
+      mockAxiosInstance.get.mockRejectedValueOnce(error);
+
+      // Verificar que se lance el error esperado
+      await expect(productsService.getProductVariations(999)).rejects.toThrow('Error del servidor: 404');
     });
   });
 }); 
