@@ -8,8 +8,12 @@ const API = {
 // Constantes de endpoints
 const ENDPOINTS = {
   BANNERS: {
-    LIST: 'banners',
+    LIST: 'banners'
   },
+  CATEGORIES: {
+    LIST: 'categories',
+    DETAIL: 'categories/:id'
+  }
 } as const;
 
 // Constantes de headers

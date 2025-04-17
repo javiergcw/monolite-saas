@@ -1,6 +1,6 @@
 import { axiosService } from './axios';
 import { configManager } from '../config';
-import { ENDPOINTS } from '../env';
+import { ENDPOINTS, API } from '../env';
 export class BannersService {
     constructor() {
         this.config = configManager.getConfig();
@@ -13,7 +13,8 @@ export class BannersService {
     }
     async getBanners() {
         try {
-            const response = await axiosService.getInstance().get(`${this.config.baseURL}/v2${ENDPOINTS.BANNERS.LIST}`);
+            const url = new URL(`${API.BASE_URL}/${API.VERSION}/${ENDPOINTS.BANNERS.LIST}`);
+            const response = await axiosService.getInstance().get(url.toString());
             return response.data.data;
         }
         catch (error) {
