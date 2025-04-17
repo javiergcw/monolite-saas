@@ -1,2 +1,5 @@
-export { setBaseURL, setLicenseKey } from './config';
-export { getBanners } from './services/banners';
+// Configuración
+export { configManager } from './config';
+// Servicios
+export { bannersService } from './services/banners';
+export { axiosService } from './services/axios';
