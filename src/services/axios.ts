@@ -4,7 +4,7 @@ import { HEADERS } from '../env';
 
 class AxiosService {
   private static instance: AxiosService;
-  private readonly axiosInstance: AxiosInstance;
+  public readonly axiosInstance: AxiosInstance;
 
   private constructor() {
     this.axiosInstance = axios.create({
@@ -16,7 +16,7 @@ class AxiosService {
     this.setupInterceptors();
   }
 
-  private setupInterceptors(): void {
+  public setupInterceptors(): void {
     this.axiosInstance.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         const { licenseKey } = configManager.getConfig();

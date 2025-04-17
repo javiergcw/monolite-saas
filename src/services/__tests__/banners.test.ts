@@ -3,7 +3,7 @@ import { BannersService } from '../banners';
 import { axiosService } from '../axios';
 import { configManager } from '../../config';
 import { ENDPOINTS, API } from '../../env';
-import type { Banner } from '../banners';
+import type { Banner } from '../../types/banners';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 
 // Mock de axiosService

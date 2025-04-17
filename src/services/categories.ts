@@ -3,40 +3,35 @@ import { configManager } from '../config';
 import { ENDPOINTS, API } from '../env';
 import { AxiosError } from 'axios';
 import { URLBuilder } from '../utils/urlBuilder';
+import type { Category, Subcategory, CategoryResponse } from '../types/categories';
 
-export interface Subcategory {
-  id: string;
-  name: string;
-  description: string;
-  image_url: string;
-  slug: string;
-  status: boolean;
-  priority: number;
-  category_id: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  description: string;
-  image_url: string;
-  slug: string;
-  status: boolean;
-  priority: number;
-  subcategories: Subcategory[];
-}
-
-interface CategoryResponse {
-  data: Category[];
-  message: string;
-}
-
+/**
+ * Servicio para gestionar las categorías de productos
+ * @class CategoriesService
+ * @example
+ * // Obtener todas las categorías
+ * const categories = await services.categories.getCategories();
+ * 
+ * // Obtener una categoría específica
+ * const category = await services.categories.getCategoryById('123');
+ * 
+ * // Manejo de errores
+ * try {
+ *   const categories = await services.categories.getCategories();
+ * } catch (error) {
+ *   console.error('Error al obtener categorías:', error.message);
+ * }
+ */
 export class CategoriesService {
   private static instance: CategoriesService;
   private readonly config = configManager.getConfig();
 
   private constructor() {}
 
+  /**
+   * Obtiene la instancia única del servicio de categorías (Singleton)
+   * @returns {CategoriesService} Instancia del servicio
+   */
   public static getInstance(): CategoriesService {
     if (!CategoriesService.instance) {
       CategoriesService.instance = new CategoriesService();
@@ -44,6 +39,16 @@ export class CategoriesService {
     return CategoriesService.instance;
   }
 
+  /**
+   * Obtiene todas las categorías disponibles
+   * @returns {Promise<Category[]>} Lista de categorías
+   * @throws {Error} Si hay un error de red o del servidor
+   * @example
+   * const categories = await services.categories.getCategories();
+   * categories.forEach(category => {
+   *   console.log(category.name, category.subcategories.length);
+   * });
+   */
   public async getCategories(): Promise<Category[]> {
     try {
       const url = URLBuilder.forCategories().withTrailingSlash().build();
@@ -58,6 +63,18 @@ export class CategoriesService {
     }
   }
 
+  /**
+   * Obtiene una categoría específica por su ID
+   * @param {string} id - ID de la categoría a obtener
+   * @returns {Promise<Category>} Categoría solicitada
+   * @throws {Error} Si hay un error de red o del servidor
+   * @example
+   * const category = await services.categories.getCategoryById('123');
+   * console.log(category.name);
+   * category.subcategories.forEach(subcategory => {
+   *   console.log('-', subcategory.name);
+   * });
+   */
   public async getCategoryById(id: string): Promise<Category> {
     try {
       const url = URLBuilder.forCategoryDetail(id).withTrailingSlash().build();
@@ -73,4 +90,8 @@ export class CategoriesService {
   }
 }
 
+/**
+ * Instancia única del servicio de categorías
+ * @type {CategoriesService}
+ */
 export const categoriesService = CategoriesService.getInstance(); 

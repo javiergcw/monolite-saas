@@ -3,7 +3,7 @@ import { CategoriesService } from '../categories';
 import { axiosService } from '../axios';
 import { configManager } from '../../config';
 import { ENDPOINTS, API } from '../../env';
-import type { Category, Subcategory } from '../categories';
+import type { Category, Subcategory } from '../../types/categories';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 
 // Mock de axiosService

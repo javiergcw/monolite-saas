@@ -3,128 +3,44 @@ import { configManager } from '../config';
 import { ENDPOINTS, API } from '../env';
 import { AxiosError } from 'axios';
 import { URLBuilder } from '../utils/urlBuilder';
+import type {
+  Product,
+  ProductSearchResponse,
+  ProductFilterBySkuResponse,
+  ProductVariation,
+  ProductVariationsResponse
+} from '../types/products';
 
-export interface ProductFeatures {
-  motor?: string;
-  chasis?: {
-    direccion?: string;
-    suspension_trasero?: string;
-    barra_estabilizadora?: string;
-    suspension_delantero?: string;
-    amortiguadores_traseros?: string;
-    amortiguadores_delanteros?: string;
-  };
-  frenos?: string[];
-  tanque?: {
-    material?: string;
-    capacidad_L?: string;
-  };
-  confort?: string[];
-  cilindros?: string;
-  desempeno?: {
-    cabina?: string;
-    numero_ruedas?: string;
-    radio_giro_mm?: string;
-    dimensiones_mm?: string;
-    peso_chasis_kg?: string;
-    distancia_ejes_mm?: string;
-    capacidad_carga_kg?: string;
-    peso_total_neto_kg?: string;
-    capacidad_eje_trasero_kg?: string;
-    capacidad_eje_delantero_kg?: string;
-    arranque_en_pendiente_percent?: string;
-  };
-  inyeccion?: string;
-  neumatico?: string;
-  torque_nm?: string;
-  combustible?: string;
-  potencia_hp?: string;
-  transmision?: {
-    tipo?: string;
-    modelo?: string;
-    marchas?: string;
-    traccion?: string;
-    relacion_final?: string;
-    relacion_reversa?: string;
-  };
-  alimentacion?: string;
-  norma_ambiental?: string;
-  sistema_electrico?: {
-    voltaje_V?: string;
-    numero_baterias?: string;
-  };
-  desplazamiento_cm3?: string;
-}
-
-export interface Product {
-  id: number;
-  name: string;
-  description?: string;
-  sku: string;
-  price: number;
-  image_url: string;
-  active: boolean;
-  public: boolean;
-  has_stock: boolean;
-  stock: number;
-  category_id: string;
-  category_name: string;
-  subcategory_id: string;
-  subcategory_name: string;
-  features?: ProductFeatures;
-}
-
-export interface ProductVariation {
-  id: number;
-  product_id: number;
-  sku: string;
-  image_url: string;
-  price: number;
-  stock: number;
-}
-
-export interface ProductSearchResult {
-  id: number;
-  name: string;
-  sku: string;
-  category_name: string;
-  subcategory_name: string;
-  image_url: string;
-}
-
-export interface Pagination {
-  limit: number;
-  page: number;
-  total: number;
-}
-
-export interface ProductSearchResponse {
-  data: {
-    pagination: Pagination;
-    results: ProductSearchResult[];
-  };
-  message: string;
-}
-
-export interface ProductFilterBySkuResponse {
-  data: {
-    pagination: Pagination;
-    products: Product[];
-  };
-  message: string;
-}
-
-export interface ProductVariationsResponse {
-  data: ProductVariation[];
-  message: string;
-}
-
+/**
+ * Servicio para gestionar los productos
+ * @class ProductsService
+ * @example
+ * // Obtener todos los productos
+ * const products = await services.products.getProducts();
+ * 
+ * // Buscar productos
+ * const searchResults = await services.products.searchProducts('camiseta', 1, 10);
+ * 
+ * // Filtrar por SKU
+ * const filteredProducts = await services.products.filterProductsBySku(['SKU123', 'SKU456']);
+ * 
+ * // Manejo de errores
+ * try {
+ *   const products = await services.products.getProducts();
+ * } catch (error) {
+ *   console.error('Error al obtener productos:', error.message);
+ * }
+ */
 export class ProductsService {
   private static instance: ProductsService;
   private readonly config = configManager.getConfig();
 
   private constructor() {}
 
+  /**
+   * Obtiene la instancia única del servicio de productos (Singleton)
+   * @returns {ProductsService} Instancia del servicio
+   */
   public static getInstance(): ProductsService {
     if (!ProductsService.instance) {
       ProductsService.instance = new ProductsService();
@@ -132,6 +48,18 @@ export class ProductsService {
     return ProductsService.instance;
   }
 
+  /**
+   * Obtiene todos los productos disponibles
+   * @param {boolean} [includeVariations=true] - Incluir variaciones de productos
+   * @param {boolean} [groupAttributes=true] - Agrupar atributos de productos
+   * @returns {Promise<Product[]>} Lista de productos
+   * @throws {Error} Si hay un error de red o del servidor
+   * @example
+   * const products = await services.products.getProducts();
+   * products.forEach(product => {
+   *   console.log(product.name, product.price);
+   * });
+   */
   public async getProducts(includeVariations = true, groupAttributes = true): Promise<Product[]> {
     try {
       const url = URLBuilder.forProducts()
@@ -152,6 +80,22 @@ export class ProductsService {
     }
   }
 
+  /**
+   * Obtiene un producto específico por su ID
+   * @param {number} id - ID del producto a obtener
+   * @param {boolean} [includeVariations=true] - Incluir variaciones del producto
+   * @param {boolean} [groupAttributes=true] - Agrupar atributos del producto
+   * @returns {Promise<Product>} Producto solicitado
+   * @throws {Error} Si hay un error de red o del servidor
+   * @example
+   * const product = await services.products.getProductById(123);
+   * console.log(product.name, product.description);
+   * if (product.variations) {
+   *   product.variations.forEach(variation => {
+   *     console.log('-', variation.sku, variation.price);
+   *   });
+   * }
+   */
   public async getProductById(id: number, includeVariations = true, groupAttributes = true): Promise<Product> {
     try {
       const url = URLBuilder.forProductDetail(id.toString())
@@ -172,6 +116,20 @@ export class ProductsService {
     }
   }
 
+  /**
+   * Busca productos por término de búsqueda
+   * @param {string} query - Término de búsqueda
+   * @param {number} [page=1] - Número de página
+   * @param {number} [limit=10] - Cantidad de resultados por página
+   * @returns {Promise<ProductSearchResponse>} Resultados de la búsqueda
+   * @throws {Error} Si hay un error de red o del servidor
+   * @example
+   * const searchResults = await services.products.searchProducts('camiseta', 1, 10);
+   * console.log(`Total resultados: ${searchResults.total}`);
+   * searchResults.data.forEach(product => {
+   *   console.log(product.name, product.price);
+   * });
+   */
   public async searchProducts(query: string, page = 1, limit = 10): Promise<ProductSearchResponse> {
     try {
       const url = URLBuilder.forProductSearch()
@@ -193,6 +151,20 @@ export class ProductsService {
     }
   }
 
+  /**
+   * Filtra productos por lista de SKUs
+   * @param {string[]} skus - Lista de SKUs a filtrar
+   * @param {number} [page=1] - Número de página
+   * @param {number} [limit=10] - Cantidad de resultados por página
+   * @param {boolean} [includeVariations=true] - Incluir variaciones de productos
+   * @returns {Promise<ProductFilterBySkuResponse>} Productos filtrados
+   * @throws {Error} Si hay un error de red o del servidor
+   * @example
+   * const filteredProducts = await services.products.filterProductsBySku(['SKU123', 'SKU456']);
+   * filteredProducts.data.forEach(product => {
+   *   console.log(product.sku, product.name);
+   * });
+   */
   public async filterProductsBySku(skus: string[], page = 1, limit = 10, includeVariations = true): Promise<ProductFilterBySkuResponse> {
     try {
       const url = URLBuilder.forProductFilterBySku()
@@ -215,6 +187,17 @@ export class ProductsService {
     }
   }
 
+  /**
+   * Obtiene las variaciones de un producto específico
+   * @param {number} id - ID del producto
+   * @returns {Promise<ProductVariation[]>} Lista de variaciones del producto
+   * @throws {Error} Si hay un error de red o del servidor
+   * @example
+   * const variations = await services.products.getProductVariations(123);
+   * variations.forEach(variation => {
+   *   console.log(variation.sku, variation.price, variation.attributes);
+   * });
+   */
   public async getProductVariations(id: number): Promise<ProductVariation[]> {
     try {
       const url = URLBuilder.forProductVariations(id.toString())
@@ -233,4 +216,8 @@ export class ProductsService {
   }
 }
 
+/**
+ * Instancia única del servicio de productos
+ * @type {ProductsService}
+ */
 export const productsService = ProductsService.getInstance(); 

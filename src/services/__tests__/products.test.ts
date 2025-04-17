@@ -3,7 +3,13 @@ import { ProductsService } from '../products';
 import { axiosService } from '../axios';
 import { configManager } from '../../config';
 import { ENDPOINTS, API } from '../../env';
-import type { Product, ProductSearchResult, ProductSearchResponse, ProductFilterBySkuResponse, ProductVariation } from '../products';
+import type { 
+  Product, 
+  ProductSearchResult, 
+  ProductSearchResponse, 
+  ProductFilterBySkuResponse, 
+  ProductVariation 
+} from '../../types/products';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 
 // Mock de axiosService
