@@ -5,6 +5,7 @@ import { configManager } from '../../config';
 import { ENDPOINTS, API } from '../../env';
 import type { Banner } from '../../types/banners';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
+import { clearCache } from '../../utils/cache';
 
 // Mock de axiosService
 const mockGet = jest.fn<() => Promise<{ data: { data: Banner[]; message: string } }>>();
@@ -53,6 +54,8 @@ describe('BannersService', () => {
   beforeEach(() => {
     // Limpiar todos los mocks
     jest.clearAllMocks();
+    // Limpiar el caché
+    clearCache();
 
     // Crear un mock del AxiosInstance
     mockAxiosInstance = {

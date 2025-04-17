@@ -3,6 +3,7 @@ import { configManager } from '../config';
 import { ENDPOINTS, API } from '../env';
 import { AxiosError } from 'axios';
 import { URLBuilder } from '../utils/urlBuilder';
+import { getCache, setCache } from '../utils/cache';
 import type { Banner, BannerResponse } from '../types/banners';
 
 /**
@@ -22,6 +23,8 @@ import type { Banner, BannerResponse } from '../types/banners';
 export class BannersService {
   private static instance: BannersService;
   private readonly config = configManager.getConfig();
+  private readonly CACHE_KEY = 'banners';
+  private readonly CACHE_TTL = 60; // 60 segundos
 
   private constructor() {}
 
@@ -50,8 +53,18 @@ export class BannersService {
     try {
       const url = URLBuilder.forBanners().withTrailingSlash().build();
       const response = await axiosService.getInstance().get<BannerResponse>(url.toString());
+      
+      // Guardar en caché solo si la respuesta fue exitosa
+      setCache(this.CACHE_KEY, response.data.data, this.CACHE_TTL);
+      
       return response.data.data;
     } catch (error) {
+      // Intentar obtener del caché en caso de error
+      const cachedBanners = getCache(this.CACHE_KEY);
+      if (cachedBanners) {
+        return cachedBanners;
+      }
+
       const axiosError = error as AxiosError;
       if (axiosError.response) {
         throw new Error(`Error del servidor: ${axiosError.response.status}`);
