@@ -38,7 +38,7 @@ export class BannersService {
 
   public async getBanners(): Promise<Banner[]> {
     try {
-      const url = URLBuilder.forBanners().build();
+      const url = URLBuilder.forBanners().withTrailingSlash().build();
       const response = await axiosService.getInstance().get<BannerResponse>(url.toString());
       return response.data.data;
     } catch (error) {

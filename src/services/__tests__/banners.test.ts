@@ -119,7 +119,7 @@ describe('BannersService', () => {
       // Verificaciones
       expect(result).toEqual(mockSuccessResponse);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'https://api.autoxpert.com.co/v2/banners'
+        'https://api.autoxpert.com.co/v2/banners/'
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });
