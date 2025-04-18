@@ -21,6 +21,12 @@ class ConfigManager {
     if (process.env.NEXT_PUBLIC_MONOLITE_BASE_URL) {
       return process.env.NEXT_PUBLIC_MONOLITE_BASE_URL;
     }
+    
+    // Si estamos en el navegador, intentamos obtener de window
+    if (typeof window !== 'undefined' && (window as any).__MONOLITE_CONFIG__?.baseURL) {
+      return (window as any).__MONOLITE_CONFIG__.baseURL;
+    }
+    
     return `${API.BASE_URL}/${API.VERSION}`;
   }
 
@@ -29,6 +35,12 @@ class ConfigManager {
     if (process.env.NEXT_PUBLIC_MONOLITE_LICENSE_KEY) {
       return process.env.NEXT_PUBLIC_MONOLITE_LICENSE_KEY;
     }
+    
+    // Si estamos en el navegador, intentamos obtener de window
+    if (typeof window !== 'undefined' && (window as any).__MONOLITE_CONFIG__?.licenseKey) {
+      return (window as any).__MONOLITE_CONFIG__.licenseKey;
+    }
+    
     return API.DEFAULT_LICENSE_KEY;
   }
 
