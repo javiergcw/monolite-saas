@@ -10,17 +10,42 @@ npm install monolite-saas
 yarn add monolite-saas
 ```
 
+## Configuración
+
+Hay dos formas de configurar el SDK:
+
+### 1. Configuración desde package.json (Recomendado)
+
+Agrega la configuración en tu `package.json`:
+
+```json
+{
+  "monolite": {
+    "baseURL": "https://api.autoxpert.com.co",
+    "licenseKey": "tu-licencia-aqui"
+  }
+}
+```
+
+### 2. Configuración programática
+
+```typescript
+import { configManager } from 'monolite-saas';
+
+// Configurar la URL base
+configManager.setBaseURL('https://api.autoxpert.com.co');
+
+// Configurar la clave de licencia
+configManager.setLicenseKey('tu-licencia-aqui');
+```
+
 ## Uso básico
 
 ```typescript
-import { configManager, bannersService } from 'monolite-saas';
+import { bannersService } from 'monolite-saas';
 
 async function obtenerBanners() {
   try {
-    // Configurar la API
-    configManager.setBaseURL('https://api.autoxpert.com.co');
-    configManager.setLicenseKey('tu-licencia-aqui');
-
     // Obtener los banners
     const banners = await bannersService.getBanners();
     
@@ -41,20 +66,6 @@ async function obtenerBanners() {
 }
 ```
 
-## Configuración
-
-### Configuración de la API
-
-```typescript
-import { configManager } from 'monolite-saas';
-
-// Configurar la URL base
-configManager.setBaseURL('https://api.autoxpert.com.co');
-
-// Configurar la clave de licencia
-configManager.setLicenseKey('tu-licencia-aqui');
-```
-
 ## Servicios disponibles
 
 ### Banners
@@ -64,6 +75,28 @@ import { bannersService } from 'monolite-saas';
 
 // Obtener todos los banners
 const banners = await bannersService.getBanners();
+```
+
+## Manejo de errores
+
+El SDK incluye un sistema de notificaciones visual que mostrará automáticamente errores cuando:
+
+- No se pueda leer la configuración del package.json
+- La URL base o la licencia estén vacías
+- Ocurran errores de red o del servidor
+
+Además, puedes manejar los errores programáticamente:
+
+```typescript
+try {
+  const banners = await bannersService.getBanners();
+} catch (error) {
+  if (error.message.includes('Error del servidor')) {
+    // Manejar error del servidor (404, 500, etc.)
+  } else if (error.message.includes('Error de red')) {
+    // Manejar error de red o timeout
+  }
+}
 ```
 
 ## Tipos
@@ -87,22 +120,21 @@ interface Banner {
 }
 ```
 
-## Manejo de errores
+## Características
 
-El SDK maneja diferentes tipos de errores:
+- ✨ Configuración automática desde package.json
+- 🚀 Sistema de notificaciones de errores integrado
+- 💾 Caché automático de respuestas
+- 🔄 Fallback a caché en caso de errores de red
+- 📝 Tipado completo con TypeScript
+- 🎨 Componentes estilizados con styled-components
 
-- Errores de red
-- Errores del servidor (404, 500, etc.)
-- Errores de autenticación
+## Requisitos
 
-```typescript
-try {
-  const banners = await bannersService.getBanners();
-} catch (error) {
-  if (error.message.includes('Error del servidor')) {
-    // Manejar error del servidor
-  } else if (error.message.includes('Error de red')) {
-    // Manejar error de red
-  }
-}
-```
+- React ≥ 18.0.0
+- Next.js ≥ 13.0.0
+- Node.js ≥ 14.0.0
+
+## Licencia
+
+ISC

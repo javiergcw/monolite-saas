@@ -8,41 +8,17 @@ import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { clearCache, getCache } from '../../utils/cache';
 
 // Mock de axiosService
-const mockGet = jest.fn<() => Promise<{ data: { data: Banner[]; message: string } }>>();
-const mockAxiosInstance = {
-  get: mockGet,
-  interceptors: {
-    request: { use: jest.fn() },
-    response: { use: jest.fn() }
-  }
-} as unknown as AxiosInstance;
-
-// Mock de axiosService
-jest.mock('../axios', () => ({
-  axiosService: {
-    getInstance: jest.fn().mockReturnValue(mockAxiosInstance)
-  }
-}));
-
-// Mock de configManager
-jest.mock('../../config', () => {
-  return {
-    configManager: {
-      getConfig: jest.fn().mockReturnValue({
-        baseURL: 'https://api.autoxpert.com.co',
-        licenseKey: 'AAAAAAAAAAAAAAAAEvvVEw0tkqMjxmm1Xn23GKuaLjtJqcJyqayhmgFgSA=='
-      }),
-      setBaseURL: jest.fn(),
-      setLicenseKey: jest.fn()
-    }
-  };
-});
-
-// Mock de ENDPOINTS
+jest.mock('../axios');
+jest.mock('../../config');
 jest.mock('../../env', () => ({
+  API: {
+    BASE_URL: 'https://api.autoxpert.com.co',
+    VERSION: 'v2',
+    DEFAULT_LICENSE_KEY: 'test-license-key'
+  },
   ENDPOINTS: {
     BANNERS: {
-      LIST: '/banners/'
+      LIST: 'banners/'
     }
   }
 }));

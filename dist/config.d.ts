@@ -6,6 +6,8 @@ declare class ConfigManager {
     private static instance;
     private state;
     private constructor();
+    private getBaseURLFromPackageJson;
+    private getLicenseKeyFromPackageJson;
     static getInstance(): ConfigManager;
     setBaseURL(url: string): void;
     setLicenseKey(key: string): void;
