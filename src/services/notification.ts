@@ -1,4 +1,3 @@
-import { ErrorNotification } from './../components/ErrorNotification';
 import { createRoot } from 'react-dom/client';
 import React from 'react';
 
@@ -28,10 +27,19 @@ class NotificationService {
 
   public showError(message: string): void {
     if (this.root) {
-      const errorElement = React.createElement(ErrorNotification, {
-        message,
-        type: 'error'
-      });
+      const errorElement = React.createElement('div', {
+        style: {
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          padding: '15px',
+          backgroundColor: '#ff4444',
+          color: 'white',
+          borderRadius: '4px',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+          zIndex: '1000'
+        }
+      }, message);
       this.root.render(errorElement);
     }
   }

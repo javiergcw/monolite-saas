@@ -13,11 +13,6 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
-    "./components/ErrorNotification": {
-      "types": "./dist/components/ErrorNotification.d.ts",
-      "import": "./dist/components/ErrorNotification.js",
-      "require": "./dist/components/ErrorNotification.js"
-    },
     "./services/notification": {
       "types": "./dist/services/notification.d.ts",
       "import": "./dist/services/notification.js",
