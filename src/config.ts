@@ -18,24 +18,26 @@ class ConfigManager {
 
   private getBaseURLFromPackageJson(): string {
     try {
-      const packageJson = require('../../package.json');
-      if (packageJson.monolite && packageJson.monolite.baseURL) {
-        return packageJson.monolite.baseURL;
+      // Buscar el package.json del proyecto que usa el paquete
+      const projectPackageJson = require(process.cwd() + '/package.json');
+      if (projectPackageJson.monolite && projectPackageJson.monolite.baseURL) {
+        return projectPackageJson.monolite.baseURL;
       }
     } catch (error) {
-      console.error('No se pudo leer la URL base del package.json');
+      console.error('No se pudo leer la URL base del package.json del proyecto');
     }
     return `${API.BASE_URL}${API.VERSION}`;
   }
 
   private getLicenseKeyFromPackageJson(): string {
     try {
-      const packageJson = require('../../package.json');
-      if (packageJson.monolite && packageJson.monolite.licenseKey) {
-        return packageJson.monolite.licenseKey;
+      // Buscar el package.json del proyecto que usa el paquete
+      const projectPackageJson = require(process.cwd() + '/package.json');
+      if (projectPackageJson.monolite && projectPackageJson.monolite.licenseKey) {
+        return projectPackageJson.monolite.licenseKey;
       }
     } catch (error) {
-      console.error('No se pudo leer la clave de licencia del package.json');
+      console.error('No se pudo leer la clave de licencia del package.json del proyecto');
     }
     return API.DEFAULT_LICENSE_KEY;
   }
