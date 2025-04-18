@@ -124,8 +124,12 @@ export class ProductsService {
     }
 
     try {
-      const url = new URL(`${API.BASE_URL}/${API.VERSION}/products/${id}?include_variations=${includeVariations}&group_attributes=${groupAttributes}`);
+      const url = URLBuilder.forProductDetail(id.toString())
+        .build();
       
+      url.searchParams.append('include_variations', includeVariations.toString());
+      url.searchParams.append('group_attributes', groupAttributes.toString());
+
       const response = await axiosService.getInstance().get<{ data: Product; message: string }>(url.toString());
       
       // Guardar en caché compartido
