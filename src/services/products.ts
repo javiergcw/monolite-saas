@@ -3,7 +3,8 @@ import { configManager } from '../config';
 import { ENDPOINTS, API } from '../env';
 import { AxiosError } from 'axios';
 import { URLBuilder } from '../utils/urlBuilder';
-import { getCache, setCache, invalidateCacheByTags, invalidateCacheByTag } from '../utils/cache';
+import { cacheStrategy } from './cache';
+import { CacheKeys } from '../types/cache.enums';
 import type {
   Product,
   ProductSearchResponse,
@@ -35,14 +36,7 @@ import type {
 export class ProductsService {
   private static instance: ProductsService;
   private readonly config = configManager.getConfig();
-  private readonly CACHE_KEY_PREFIX = 'products';
-  private readonly CACHE_TTL = {
-    LIST: 300, // 5 minutos para listas
-    DETAIL: 600, // 10 minutos para detalles
-    SEARCH: 60, // 1 minuto para búsquedas
-    FILTER: 300, // 5 minutos para filtros
-    VARIATIONS: 300 // 5 minutos para variaciones
-  };
+  private readonly CACHE_TTL = 60; // 60 segundos
 
   private constructor() {}
 
@@ -70,10 +64,10 @@ export class ProductsService {
    * });
    */
   public async getProducts(includeVariations = true, groupAttributes = true): Promise<Product[]> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}:list:${includeVariations}:${groupAttributes}`;
+    const cacheKey = `${CacheKeys.PRODUCTS_LIST}:${includeVariations}:${groupAttributes}`;
     
-    // Intentar obtener del caché primero
-    const cachedProducts = getCache<Product[]>(cacheKey);
+    // Intentar obtener del caché compartido primero
+    const cachedProducts = cacheStrategy.shared.get<Product[]>(cacheKey);
     if (cachedProducts) {
       return cachedProducts;
     }
@@ -88,8 +82,11 @@ export class ProductsService {
 
       const response = await axiosService.getInstance().get<{ data: Product[]; message: string }>(url.toString());
       
-      // Guardar en caché con tags para invalidación
-      setCache(cacheKey, response.data.data, this.CACHE_TTL.LIST, ['products:list']);
+      // Guardar en caché compartido
+      cacheStrategy.shared.set(cacheKey, response.data.data, {
+        ttl: this.CACHE_TTL,
+        tags: [CacheKeys.PRODUCTS_LIST]
+      });
       
       return response.data.data;
     } catch (error) {
@@ -118,10 +115,10 @@ export class ProductsService {
    * }
    */
   public async getProductById(id: number, includeVariations = true, groupAttributes = true): Promise<Product> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}:${id}:${includeVariations}:${groupAttributes}`;
+    const cacheKey = `${CacheKeys.PRODUCTS_DETAIL}:${id}:${includeVariations}:${groupAttributes}`;
     
-    // Intentar obtener del caché primero
-    const cachedProduct = getCache<Product>(cacheKey);
+    // Intentar obtener del caché compartido primero
+    const cachedProduct = cacheStrategy.shared.get<Product>(cacheKey);
     if (cachedProduct) {
       return cachedProduct;
     }
@@ -136,11 +133,11 @@ export class ProductsService {
 
       const response = await axiosService.getInstance().get<{ data: Product; message: string }>(url.toString());
       
-      // Guardar en caché con tags para invalidación
-      setCache(cacheKey, response.data.data, this.CACHE_TTL.DETAIL, [
-        'products:detail',
-        `products:${id}`
-      ]);
+      // Guardar en caché compartido
+      cacheStrategy.shared.set(cacheKey, response.data.data, {
+        ttl: this.CACHE_TTL,
+        tags: [CacheKeys.PRODUCTS_DETAIL, `${CacheKeys.PRODUCTS}:${id}`]
+      });
       
       return response.data.data;
     } catch (error) {
@@ -167,10 +164,10 @@ export class ProductsService {
    * });
    */
   public async searchProducts(query: string, page = 1, limit = 10): Promise<ProductSearchResponse> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}:search:${query}:${page}:${limit}`;
+    const cacheKey = `${CacheKeys.PRODUCTS_SEARCH}:${query}:${page}:${limit}`;
     
-    // Intentar obtener del caché primero
-    const cachedSearch = getCache<ProductSearchResponse>(cacheKey);
+    // Intentar obtener del caché compartido primero
+    const cachedSearch = cacheStrategy.shared.get<ProductSearchResponse>(cacheKey);
     if (cachedSearch) {
       return cachedSearch;
     }
@@ -186,11 +183,11 @@ export class ProductsService {
 
       const response = await axiosService.getInstance().get<ProductSearchResponse>(url.toString());
       
-      // Guardar en caché con tags para invalidación
-      setCache(cacheKey, response.data, this.CACHE_TTL.SEARCH, [
-        'products:search',
-        `products:search:${query}`
-      ]);
+      // Guardar en caché compartido
+      cacheStrategy.shared.set(cacheKey, response.data, {
+        ttl: this.CACHE_TTL,
+        tags: [CacheKeys.PRODUCTS_SEARCH, `${CacheKeys.PRODUCTS_SEARCH}:${query}`]
+      });
       
       return response.data;
     } catch (error) {
@@ -217,10 +214,10 @@ export class ProductsService {
    * });
    */
   public async filterProductsBySku(skus: string[], page = 1, limit = 10, includeVariations = true): Promise<ProductFilterBySkuResponse> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}:filter:${skus.join(',')}:${page}:${limit}:${includeVariations}`;
+    const cacheKey = `${CacheKeys.PRODUCTS_FILTER}:${skus.join(',')}:${page}:${limit}:${includeVariations}`;
     
-    // Intentar obtener del caché primero
-    const cachedFilter = getCache<ProductFilterBySkuResponse>(cacheKey);
+    // Intentar obtener del caché compartido primero
+    const cachedFilter = cacheStrategy.shared.get<ProductFilterBySkuResponse>(cacheKey);
     if (cachedFilter) {
       return cachedFilter;
     }
@@ -237,11 +234,11 @@ export class ProductsService {
         include_variations: includeVariations
       });
       
-      // Guardar en caché con tags para invalidación
-      setCache(cacheKey, response.data, this.CACHE_TTL.FILTER, [
-        'products:filter',
-        `products:filter:${skus.join(',')}`
-      ]);
+      // Guardar en caché compartido
+      cacheStrategy.shared.set(cacheKey, response.data, {
+        ttl: this.CACHE_TTL,
+        tags: [CacheKeys.PRODUCTS_FILTER, `${CacheKeys.PRODUCTS_FILTER}:${skus.join(',')}`]
+      });
       
       return response.data;
     } catch (error) {
@@ -265,10 +262,10 @@ export class ProductsService {
    * });
    */
   public async getProductVariations(id: number): Promise<ProductVariation[]> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}:variations:${id}`;
+    const cacheKey = `${CacheKeys.PRODUCTS}:${id}:variations`;
     
-    // Intentar obtener del caché primero
-    const cachedVariations = getCache<ProductVariation[]>(cacheKey);
+    // Intentar obtener del caché compartido primero
+    const cachedVariations = cacheStrategy.shared.get<ProductVariation[]>(cacheKey);
     if (cachedVariations) {
       return cachedVariations;
     }
@@ -280,11 +277,11 @@ export class ProductsService {
 
       const response = await axiosService.getInstance().get<ProductVariationsResponse>(url.toString());
       
-      // Guardar en caché con tags para invalidación
-      setCache(cacheKey, response.data.data, this.CACHE_TTL.VARIATIONS, [
-        'products:variations',
-        `products:${id}:variations`
-      ]);
+      // Guardar en caché compartido
+      cacheStrategy.shared.set(cacheKey, response.data.data, {
+        ttl: this.CACHE_TTL,
+        tags: [CacheKeys.PRODUCTS_VARIATIONS, `${CacheKeys.PRODUCTS}:${id}:variations`]
+      });
       
       return response.data.data;
     } catch (error) {
@@ -294,24 +291,6 @@ export class ProductsService {
       }
       throw new Error('Error de red');
     }
-  }
-
-  // Nuevo método para invalidar caché de un producto específico
-  public invalidateProductCache(id: number): void {
-    invalidateCacheByTags([
-      `products:${id}`,
-      `products:${id}:variations`
-    ]);
-  }
-
-  // Nuevo método para invalidar caché de búsquedas
-  public invalidateSearchCache(query: string): void {
-    invalidateCacheByTag(`products:search:${query}`);
-  }
-
-  // Nuevo método para invalidar caché de filtros
-  public invalidateFilterCache(skus: string[]): void {
-    invalidateCacheByTag(`products:filter:${skus.join(',')}`);
   }
 }
 

@@ -5,10 +5,12 @@ import { configManager } from '../../config';
 import { ENDPOINTS, API } from '../../env';
 import type { Category, Subcategory } from '../../types/categories';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
-import { clearCache, getCache } from '../../utils/cache';
+import { cacheStrategy } from '../cache';
+import { CacheKeys } from '../../types/cache.enums';
+import { clearCache } from '../../utils/cache';
 
 // Mock de axiosService
-const mockGet = jest.fn<() => Promise<{ data: { data: Category[]; message: string } }>>();
+const mockGet = jest.fn();
 const mockAxiosInstance = {
   get: mockGet,
   interceptors: {
@@ -20,7 +22,7 @@ const mockAxiosInstance = {
 // Mock de axiosService
 jest.mock('../axios', () => ({
   axiosService: {
-    getInstance: jest.fn().mockReturnValue(mockAxiosInstance)
+    getInstance: jest.fn(() => mockAxiosInstance)
   }
 }));
 
@@ -160,7 +162,7 @@ describe('CategoriesService', () => {
         expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
 
         // Verificar que los datos están en caché
-        const cachedData = getCache('categories:list');
+        const cachedData = cacheStrategy.shared.get<Category[]>(CacheKeys.CATEGORIES_LIST);
         expect(cachedData).toEqual(mockSuccessResponse);
       });
 
@@ -265,54 +267,42 @@ describe('CategoriesService', () => {
     });
 
     describe('Caché', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+        clearCache();
+      });
+
       it('debería guardar los datos en caché después de una petición exitosa', async () => {
-        const mockResponse: AxiosResponse = {
+        // Configurar el mock de la respuesta exitosa
+        mockAxiosInstance.get.mockResolvedValueOnce({
           data: {
-            data: mockCategory
+            data: mockCategory,
+            message: "Consulta realizada correctamente"
           },
           status: 200,
           statusText: 'OK',
           headers: {},
           config: {} as any
-        };
+        });
 
-        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
-
-        // Primera llamada - debería hacer la petición HTTP
         await categoriesService.getCategoryById(mockCategory.id);
-        
-        // Verificar que se hizo la petición HTTP
-        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
 
         // Verificar que los datos están en caché
-        const cachedData = getCache(`categories:${mockCategory.id}`);
+        const cachedData = cacheStrategy.shared.get<Category>(`${CacheKeys.CATEGORIES_DETAIL}:${mockCategory.id}`);
         expect(cachedData).toEqual(mockCategory);
       });
 
       it('debería usar el caché en lugar de hacer una nueva petición HTTP', async () => {
-        const mockResponse: AxiosResponse = {
-          data: {
-            data: mockCategory
-          },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {} as any
-        };
+        // Simular que los datos ya están en caché
+        cacheStrategy.shared.set(`${CacheKeys.CATEGORIES_DETAIL}:${mockCategory.id}`, mockCategory, {
+          ttl: 60,
+          tags: [CacheKeys.CATEGORIES_DETAIL]
+        });
 
-        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
-
-        // Primera llamada - hace la petición HTTP y guarda en caché
-        await categoriesService.getCategoryById(mockCategory.id);
-        
-        // Segunda llamada - debería usar el caché
         const result = await categoriesService.getCategoryById(mockCategory.id);
 
-        // Verificar que solo se hizo una petición HTTP
-        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
-        
-        // Verificar que se devolvieron los datos correctos
         expect(result).toEqual(mockCategory);
+        expect(mockAxiosInstance.get).not.toHaveBeenCalled();
       });
     });
   });

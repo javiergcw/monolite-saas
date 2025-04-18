@@ -3,7 +3,8 @@ import { configManager } from '../config';
 import { ENDPOINTS, API } from '../env';
 import { AxiosError } from 'axios';
 import { URLBuilder } from '../utils/urlBuilder';
-import { getCache, setCache } from '../utils/cache';
+import { cacheStrategy } from './cache';
+import { CacheKeys } from '../types/cache.enums';
 import type { Banner, BannerResponse } from '../types/banners';
 
 /**
@@ -23,7 +24,6 @@ import type { Banner, BannerResponse } from '../types/banners';
 export class BannersService {
   private static instance: BannersService;
   private readonly config = configManager.getConfig();
-  private readonly CACHE_KEY_PREFIX = 'banners';
   private readonly CACHE_TTL = 60; // 60 segundos
 
   private constructor() {}
@@ -50,10 +50,8 @@ export class BannersService {
    * });
    */
   public async getBanners(): Promise<Banner[]> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}:list`;
-    
-    // Intentar obtener del caché primero
-    const cachedBanners = getCache<Banner[]>(cacheKey);
+    // Intentar obtener del caché compartido primero
+    const cachedBanners = cacheStrategy.shared.get<Banner[]>(CacheKeys.BANNERS_LIST);
     if (cachedBanners) {
       return cachedBanners;
     }
@@ -62,8 +60,11 @@ export class BannersService {
       const url = URLBuilder.forBanners().withTrailingSlash().build();
       const response = await axiosService.getInstance().get<BannerResponse>(url.toString());
       
-      // Guardar en caché solo si la respuesta fue exitosa
-      setCache(cacheKey, response.data.data, this.CACHE_TTL, ['banners:list']);
+      // Guardar en caché compartido
+      cacheStrategy.shared.set(CacheKeys.BANNERS_LIST, response.data.data, {
+        ttl: this.CACHE_TTL,
+        tags: [CacheKeys.BANNERS_LIST]
+      });
       
       return response.data.data;
     } catch (error) {

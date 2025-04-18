@@ -3,7 +3,8 @@ import { configManager } from '../config';
 import { ENDPOINTS, API } from '../env';
 import { AxiosError } from 'axios';
 import { URLBuilder } from '../utils/urlBuilder';
-import { getCache, setCache } from '../utils/cache';
+import { cacheStrategy } from './cache';
+import { CacheKeys } from '../types/cache.enums';
 import type { Category, Subcategory, CategoryResponse } from '../types/categories';
 
 /**
@@ -26,7 +27,6 @@ import type { Category, Subcategory, CategoryResponse } from '../types/categorie
 export class CategoriesService {
   private static instance: CategoriesService;
   private readonly config = configManager.getConfig();
-  private readonly CACHE_KEY_PREFIX = 'categories';
   private readonly CACHE_TTL = 60; // 60 segundos
 
   private constructor() {}
@@ -53,10 +53,8 @@ export class CategoriesService {
    * });
    */
   public async getCategories(): Promise<Category[]> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}:list`;
-    
-    // Intentar obtener del caché primero
-    const cachedCategories = getCache<Category[]>(cacheKey);
+    // Intentar obtener del caché compartido primero
+    const cachedCategories = cacheStrategy.shared.get<Category[]>(CacheKeys.CATEGORIES_LIST);
     if (cachedCategories) {
       return cachedCategories;
     }
@@ -65,8 +63,11 @@ export class CategoriesService {
       const url = URLBuilder.forCategories().withTrailingSlash().build();
       const response = await axiosService.getInstance().get<CategoryResponse>(url.toString());
       
-      // Guardar en caché solo si la respuesta fue exitosa
-      setCache(cacheKey, response.data.data, this.CACHE_TTL, ['categories:list']);
+      // Guardar en caché compartido
+      cacheStrategy.shared.set(CacheKeys.CATEGORIES_LIST, response.data.data, {
+        ttl: this.CACHE_TTL,
+        tags: [CacheKeys.CATEGORIES_LIST]
+      });
       
       return response.data.data;
     } catch (error) {
@@ -91,10 +92,10 @@ export class CategoriesService {
    * });
    */
   public async getCategoryById(id: string): Promise<Category> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}:${id}`;
+    const cacheKey = `${CacheKeys.CATEGORIES_DETAIL}:${id}`;
     
-    // Intentar obtener del caché primero
-    const cachedCategory = getCache<Category>(cacheKey);
+    // Intentar obtener del caché compartido primero
+    const cachedCategory = cacheStrategy.shared.get<Category>(cacheKey);
     if (cachedCategory) {
       return cachedCategory;
     }
@@ -103,11 +104,11 @@ export class CategoriesService {
       const url = URLBuilder.forCategoryDetail(id).withTrailingSlash().build();
       const response = await axiosService.getInstance().get<{ data: Category }>(url.toString());
       
-      // Guardar en caché solo si la respuesta fue exitosa
-      setCache(cacheKey, response.data.data, this.CACHE_TTL, [
-        'categories:detail',
-        `categories:${id}`
-      ]);
+      // Guardar en caché compartido
+      cacheStrategy.shared.set(cacheKey, response.data.data, {
+        ttl: this.CACHE_TTL,
+        tags: [CacheKeys.CATEGORIES_DETAIL, `${CacheKeys.CATEGORIES}:${id}`]
+      });
       
       return response.data.data;
     } catch (error) {
