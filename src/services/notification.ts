@@ -1,4 +1,4 @@
-import { ErrorNotification } from '../components/ErrorNotification';
+import { ErrorNotification } from './../components/ErrorNotification';
 import { createRoot } from 'react-dom/client';
 import React from 'react';
 
