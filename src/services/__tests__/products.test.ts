@@ -11,6 +11,7 @@ import type {
   ProductVariation 
 } from '../../types/products';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
+import { clearCache, getCache } from '../../utils/cache';
 
 // Mock de axiosService
 const mockGet = jest.fn<() => Promise<{ data: { data: Product[]; message: string } }>>();
@@ -52,6 +53,8 @@ describe('ProductsService', () => {
   beforeEach(() => {
     // Limpiar todos los mocks
     jest.clearAllMocks();
+    // Limpiar el caché
+    clearCache();
 
     // Crear un mock del AxiosInstance
     mockAxiosInstance = {
@@ -146,6 +149,60 @@ describe('ProductsService', () => {
 
       // Verificar que se lance el error esperado
       await expect(productsService.getProducts()).rejects.toThrow('Error del servidor: 404');
+    });
+
+    describe('Caché', () => {
+      it('debería guardar los datos en caché después de una petición exitosa', async () => {
+        const mockResponse: AxiosResponse = {
+          data: {
+            data: mockSuccessResponse,
+            message: "Consulta realizada correctamente"
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - debería hacer la petición HTTP
+        await productsService.getProducts();
+        
+        // Verificar que se hizo la petición HTTP
+        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+
+        // Verificar que los datos están en caché
+        const cachedData = getCache('products:list:true:true');
+        expect(cachedData).toEqual(mockSuccessResponse);
+      });
+
+      it('debería usar el caché en lugar de hacer una nueva petición HTTP', async () => {
+        const mockResponse: AxiosResponse = {
+          data: {
+            data: mockSuccessResponse,
+            message: "Consulta realizada correctamente"
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - hace la petición HTTP y guarda en caché
+        await productsService.getProducts();
+        
+        // Segunda llamada - debería usar el caché
+        const result = await productsService.getProducts();
+
+        // Verificar que solo se hizo una petición HTTP
+        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+        
+        // Verificar que se devolvieron los datos correctos
+        expect(result).toEqual(mockSuccessResponse);
+      });
     });
   });
 
@@ -277,6 +334,60 @@ describe('ProductsService', () => {
       // Verificar que se lance el error esperado
       await expect(productsService.getProductById(999)).rejects.toThrow('Error del servidor: 404');
     });
+
+    describe('Caché', () => {
+      it('debería guardar los datos en caché después de una petición exitosa', async () => {
+        const mockResponse: AxiosResponse = {
+          data: {
+            data: mockProduct,
+            message: "Consulta realizada correctamente"
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - debería hacer la petición HTTP
+        await productsService.getProductById(mockProduct.id);
+        
+        // Verificar que se hizo la petición HTTP
+        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+
+        // Verificar que los datos están en caché
+        const cachedData = getCache(`products:${mockProduct.id}:true:true`);
+        expect(cachedData).toEqual(mockProduct);
+      });
+
+      it('debería usar el caché en lugar de hacer una nueva petición HTTP', async () => {
+        const mockResponse: AxiosResponse = {
+          data: {
+            data: mockProduct,
+            message: "Consulta realizada correctamente"
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - hace la petición HTTP y guarda en caché
+        await productsService.getProductById(mockProduct.id);
+        
+        // Segunda llamada - debería usar el caché
+        const result = await productsService.getProductById(mockProduct.id);
+
+        // Verificar que solo se hizo una petición HTTP
+        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+        
+        // Verificar que se devolvieron los datos correctos
+        expect(result).toEqual(mockProduct);
+      });
+    });
   });
 
   describe('searchProducts', () => {
@@ -324,6 +435,54 @@ describe('ProductsService', () => {
         'https://api.autoxpert.com.co/v2/products/search/?q=cami&page=1&limit=4'
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+    });
+
+    describe('Caché', () => {
+      it('debería guardar los datos en caché después de una petición exitosa', async () => {
+        const mockResponse: AxiosResponse = {
+          data: mockSearchResponse,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - debería hacer la petición HTTP
+        await productsService.searchProducts('cami', 1, 4);
+        
+        // Verificar que se hizo la petición HTTP
+        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+
+        // Verificar que los datos están en caché
+        const cachedData = getCache('products:search:cami:1:4');
+        expect(cachedData).toEqual(mockSearchResponse);
+      });
+
+      it('debería usar el caché en lugar de hacer una nueva petición HTTP', async () => {
+        const mockResponse: AxiosResponse = {
+          data: mockSearchResponse,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - hace la petición HTTP y guarda en caché
+        await productsService.searchProducts('cami', 1, 4);
+        
+        // Segunda llamada - debería usar el caché
+        const result = await productsService.searchProducts('cami', 1, 4);
+
+        // Verificar que solo se hizo una petición HTTP
+        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+        
+        // Verificar que se devolvieron los datos correctos
+        expect(result).toEqual(mockSearchResponse);
+      });
     });
   });
 
@@ -386,6 +545,54 @@ describe('ProductsService', () => {
       );
       expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
     });
+
+    describe('Caché', () => {
+      it('debería guardar los datos en caché después de una petición exitosa', async () => {
+        const mockResponse: AxiosResponse = {
+          data: mockFilterResponse,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - debería hacer la petición HTTP
+        await productsService.filterProductsBySku(['WKR-3-7-TIGER', 'JKRD-001']);
+        
+        // Verificar que se hizo la petición HTTP
+        expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
+
+        // Verificar que los datos están en caché
+        const cachedData = getCache('products:filter:WKR-3-7-TIGER,JKRD-001:1:10:true');
+        expect(cachedData).toEqual(mockFilterResponse);
+      });
+
+      it('debería usar el caché en lugar de hacer una nueva petición HTTP', async () => {
+        const mockResponse: AxiosResponse = {
+          data: mockFilterResponse,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - hace la petición HTTP y guarda en caché
+        await productsService.filterProductsBySku(['WKR-3-7-TIGER', 'JKRD-001']);
+        
+        // Segunda llamada - debería usar el caché
+        const result = await productsService.filterProductsBySku(['WKR-3-7-TIGER', 'JKRD-001']);
+
+        // Verificar que solo se hizo una petición HTTP
+        expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
+        
+        // Verificar que se devolvieron los datos correctos
+        expect(result).toEqual(mockFilterResponse);
+      });
+    });
   });
 
   describe('getProductVariations', () => {
@@ -447,6 +654,60 @@ describe('ProductsService', () => {
 
       // Verificar que se lance el error esperado
       await expect(productsService.getProductVariations(999)).rejects.toThrow('Error del servidor: 404');
+    });
+
+    describe('Caché', () => {
+      it('debería guardar los datos en caché después de una petición exitosa', async () => {
+        const mockResponse: AxiosResponse = {
+          data: {
+            data: mockVariations,
+            message: "Consulta realizada correctamente"
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - debería hacer la petición HTTP
+        await productsService.getProductVariations(2);
+        
+        // Verificar que se hizo la petición HTTP
+        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+
+        // Verificar que los datos están en caché
+        const cachedData = getCache('products:variations:2');
+        expect(cachedData).toEqual(mockVariations);
+      });
+
+      it('debería usar el caché en lugar de hacer una nueva petición HTTP', async () => {
+        const mockResponse: AxiosResponse = {
+          data: {
+            data: mockVariations,
+            message: "Consulta realizada correctamente"
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - hace la petición HTTP y guarda en caché
+        await productsService.getProductVariations(2);
+        
+        // Segunda llamada - debería usar el caché
+        const result = await productsService.getProductVariations(2);
+
+        // Verificar que solo se hizo una petición HTTP
+        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+        
+        // Verificar que se devolvieron los datos correctos
+        expect(result).toEqual(mockVariations);
+      });
     });
   });
 }); 

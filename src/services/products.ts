@@ -3,6 +3,7 @@ import { configManager } from '../config';
 import { ENDPOINTS, API } from '../env';
 import { AxiosError } from 'axios';
 import { URLBuilder } from '../utils/urlBuilder';
+import { getCache, setCache, invalidateCacheByTags, invalidateCacheByTag } from '../utils/cache';
 import type {
   Product,
   ProductSearchResponse,
@@ -34,6 +35,14 @@ import type {
 export class ProductsService {
   private static instance: ProductsService;
   private readonly config = configManager.getConfig();
+  private readonly CACHE_KEY_PREFIX = 'products';
+  private readonly CACHE_TTL = {
+    LIST: 300, // 5 minutos para listas
+    DETAIL: 600, // 10 minutos para detalles
+    SEARCH: 60, // 1 minuto para búsquedas
+    FILTER: 300, // 5 minutos para filtros
+    VARIATIONS: 300 // 5 minutos para variaciones
+  };
 
   private constructor() {}
 
@@ -61,6 +70,14 @@ export class ProductsService {
    * });
    */
   public async getProducts(includeVariations = true, groupAttributes = true): Promise<Product[]> {
+    const cacheKey = `${this.CACHE_KEY_PREFIX}:list:${includeVariations}:${groupAttributes}`;
+    
+    // Intentar obtener del caché primero
+    const cachedProducts = getCache<Product[]>(cacheKey);
+    if (cachedProducts) {
+      return cachedProducts;
+    }
+
     try {
       const url = URLBuilder.forProducts()
         .withTrailingSlash()
@@ -70,6 +87,10 @@ export class ProductsService {
       url.searchParams.append('group_attributes', groupAttributes.toString());
 
       const response = await axiosService.getInstance().get<{ data: Product[]; message: string }>(url.toString());
+      
+      // Guardar en caché con tags para invalidación
+      setCache(cacheKey, response.data.data, this.CACHE_TTL.LIST, ['products:list']);
+      
       return response.data.data;
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -97,6 +118,14 @@ export class ProductsService {
    * }
    */
   public async getProductById(id: number, includeVariations = true, groupAttributes = true): Promise<Product> {
+    const cacheKey = `${this.CACHE_KEY_PREFIX}:${id}:${includeVariations}:${groupAttributes}`;
+    
+    // Intentar obtener del caché primero
+    const cachedProduct = getCache<Product>(cacheKey);
+    if (cachedProduct) {
+      return cachedProduct;
+    }
+
     try {
       const url = URLBuilder.forProductDetail(id.toString())
         .withTrailingSlash()
@@ -106,6 +135,13 @@ export class ProductsService {
       url.searchParams.append('group_attributes', groupAttributes.toString());
 
       const response = await axiosService.getInstance().get<{ data: Product; message: string }>(url.toString());
+      
+      // Guardar en caché con tags para invalidación
+      setCache(cacheKey, response.data.data, this.CACHE_TTL.DETAIL, [
+        'products:detail',
+        `products:${id}`
+      ]);
+      
       return response.data.data;
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -131,6 +167,14 @@ export class ProductsService {
    * });
    */
   public async searchProducts(query: string, page = 1, limit = 10): Promise<ProductSearchResponse> {
+    const cacheKey = `${this.CACHE_KEY_PREFIX}:search:${query}:${page}:${limit}`;
+    
+    // Intentar obtener del caché primero
+    const cachedSearch = getCache<ProductSearchResponse>(cacheKey);
+    if (cachedSearch) {
+      return cachedSearch;
+    }
+
     try {
       const url = URLBuilder.forProductSearch()
         .withTrailingSlash()
@@ -141,6 +185,13 @@ export class ProductsService {
       url.searchParams.append('limit', limit.toString());
 
       const response = await axiosService.getInstance().get<ProductSearchResponse>(url.toString());
+      
+      // Guardar en caché con tags para invalidación
+      setCache(cacheKey, response.data, this.CACHE_TTL.SEARCH, [
+        'products:search',
+        `products:search:${query}`
+      ]);
+      
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -166,6 +217,14 @@ export class ProductsService {
    * });
    */
   public async filterProductsBySku(skus: string[], page = 1, limit = 10, includeVariations = true): Promise<ProductFilterBySkuResponse> {
+    const cacheKey = `${this.CACHE_KEY_PREFIX}:filter:${skus.join(',')}:${page}:${limit}:${includeVariations}`;
+    
+    // Intentar obtener del caché primero
+    const cachedFilter = getCache<ProductFilterBySkuResponse>(cacheKey);
+    if (cachedFilter) {
+      return cachedFilter;
+    }
+
     try {
       const url = URLBuilder.forProductFilterBySku()
         .withTrailingSlash()
@@ -177,6 +236,13 @@ export class ProductsService {
         limit,
         include_variations: includeVariations
       });
+      
+      // Guardar en caché con tags para invalidación
+      setCache(cacheKey, response.data, this.CACHE_TTL.FILTER, [
+        'products:filter',
+        `products:filter:${skus.join(',')}`
+      ]);
+      
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -199,12 +265,27 @@ export class ProductsService {
    * });
    */
   public async getProductVariations(id: number): Promise<ProductVariation[]> {
+    const cacheKey = `${this.CACHE_KEY_PREFIX}:variations:${id}`;
+    
+    // Intentar obtener del caché primero
+    const cachedVariations = getCache<ProductVariation[]>(cacheKey);
+    if (cachedVariations) {
+      return cachedVariations;
+    }
+
     try {
       const url = URLBuilder.forProductVariations(id.toString())
         .withTrailingSlash()
         .build();
 
       const response = await axiosService.getInstance().get<ProductVariationsResponse>(url.toString());
+      
+      // Guardar en caché con tags para invalidación
+      setCache(cacheKey, response.data.data, this.CACHE_TTL.VARIATIONS, [
+        'products:variations',
+        `products:${id}:variations`
+      ]);
+      
       return response.data.data;
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -213,6 +294,24 @@ export class ProductsService {
       }
       throw new Error('Error de red');
     }
+  }
+
+  // Nuevo método para invalidar caché de un producto específico
+  public invalidateProductCache(id: number): void {
+    invalidateCacheByTags([
+      `products:${id}`,
+      `products:${id}:variations`
+    ]);
+  }
+
+  // Nuevo método para invalidar caché de búsquedas
+  public invalidateSearchCache(query: string): void {
+    invalidateCacheByTag(`products:search:${query}`);
+  }
+
+  // Nuevo método para invalidar caché de filtros
+  public invalidateFilterCache(skus: string[]): void {
+    invalidateCacheByTag(`products:filter:${skus.join(',')}`);
   }
 }
 

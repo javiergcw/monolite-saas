@@ -7,7 +7,7 @@ import { getCache, setCache } from '../utils/cache';
 import type { Banner, BannerResponse } from '../types/banners';
 
 /**
- * Servicio para gestionar los banners de la aplicación
+ * Servicio para gestionar los banners
  * @class BannersService
  * @example
  * // Obtener todos los banners
@@ -23,7 +23,7 @@ import type { Banner, BannerResponse } from '../types/banners';
 export class BannersService {
   private static instance: BannersService;
   private readonly config = configManager.getConfig();
-  private readonly CACHE_KEY = 'banners';
+  private readonly CACHE_KEY_PREFIX = 'banners';
   private readonly CACHE_TTL = 60; // 60 segundos
 
   private constructor() {}
@@ -46,25 +46,27 @@ export class BannersService {
    * @example
    * const banners = await services.banners.getBanners();
    * banners.forEach(banner => {
-   *   console.log(banner.title, banner.imageUrl);
+   *   console.log(banner.title, banner.image_url);
    * });
    */
   public async getBanners(): Promise<Banner[]> {
+    const cacheKey = `${this.CACHE_KEY_PREFIX}:list`;
+    
+    // Intentar obtener del caché primero
+    const cachedBanners = getCache<Banner[]>(cacheKey);
+    if (cachedBanners) {
+      return cachedBanners;
+    }
+
     try {
       const url = URLBuilder.forBanners().withTrailingSlash().build();
       const response = await axiosService.getInstance().get<BannerResponse>(url.toString());
       
       // Guardar en caché solo si la respuesta fue exitosa
-      setCache(this.CACHE_KEY, response.data.data, this.CACHE_TTL);
+      setCache(cacheKey, response.data.data, this.CACHE_TTL, ['banners:list']);
       
       return response.data.data;
     } catch (error) {
-      // Intentar obtener del caché en caso de error
-      const cachedBanners = getCache(this.CACHE_KEY);
-      if (cachedBanners) {
-        return cachedBanners;
-      }
-
       const axiosError = error as AxiosError;
       if (axiosError.response) {
         throw new Error(`Error del servidor: ${axiosError.response.status}`);

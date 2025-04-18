@@ -3,6 +3,7 @@ import { configManager } from '../config';
 import { ENDPOINTS, API } from '../env';
 import { AxiosError } from 'axios';
 import { URLBuilder } from '../utils/urlBuilder';
+import { getCache, setCache } from '../utils/cache';
 import type { Category, Subcategory, CategoryResponse } from '../types/categories';
 
 /**
@@ -25,6 +26,8 @@ import type { Category, Subcategory, CategoryResponse } from '../types/categorie
 export class CategoriesService {
   private static instance: CategoriesService;
   private readonly config = configManager.getConfig();
+  private readonly CACHE_KEY_PREFIX = 'categories';
+  private readonly CACHE_TTL = 60; // 60 segundos
 
   private constructor() {}
 
@@ -50,9 +53,21 @@ export class CategoriesService {
    * });
    */
   public async getCategories(): Promise<Category[]> {
+    const cacheKey = `${this.CACHE_KEY_PREFIX}:list`;
+    
+    // Intentar obtener del caché primero
+    const cachedCategories = getCache<Category[]>(cacheKey);
+    if (cachedCategories) {
+      return cachedCategories;
+    }
+
     try {
       const url = URLBuilder.forCategories().withTrailingSlash().build();
       const response = await axiosService.getInstance().get<CategoryResponse>(url.toString());
+      
+      // Guardar en caché solo si la respuesta fue exitosa
+      setCache(cacheKey, response.data.data, this.CACHE_TTL, ['categories:list']);
+      
       return response.data.data;
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -76,9 +91,24 @@ export class CategoriesService {
    * });
    */
   public async getCategoryById(id: string): Promise<Category> {
+    const cacheKey = `${this.CACHE_KEY_PREFIX}:${id}`;
+    
+    // Intentar obtener del caché primero
+    const cachedCategory = getCache<Category>(cacheKey);
+    if (cachedCategory) {
+      return cachedCategory;
+    }
+
     try {
       const url = URLBuilder.forCategoryDetail(id).withTrailingSlash().build();
       const response = await axiosService.getInstance().get<{ data: Category }>(url.toString());
+      
+      // Guardar en caché solo si la respuesta fue exitosa
+      setCache(cacheKey, response.data.data, this.CACHE_TTL, [
+        'categories:detail',
+        `categories:${id}`
+      ]);
+      
       return response.data.data;
     } catch (error) {
       const axiosError = error as AxiosError;

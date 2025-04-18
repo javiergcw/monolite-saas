@@ -5,7 +5,7 @@ import { configManager } from '../../config';
 import { ENDPOINTS, API } from '../../env';
 import type { Banner } from '../../types/banners';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
-import { clearCache } from '../../utils/cache';
+import { clearCache, getCache } from '../../utils/cache';
 
 // Mock de axiosService
 const mockGet = jest.fn<() => Promise<{ data: { data: Banner[]; message: string } }>>();
@@ -181,6 +181,90 @@ describe('BannersService', () => {
 
       // Verificar que se lance el error esperado
       await expect(bannersService.getBanners()).rejects.toThrow('Error de red');
+    });
+
+    describe('Caché', () => {
+      it('debería guardar los datos en caché después de una petición exitosa', async () => {
+        const mockResponse: AxiosResponse = {
+          data: {
+            data: mockSuccessResponse,
+            message: "Consulta realizada correctamente"
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - debería hacer la petición HTTP
+        await bannersService.getBanners();
+        
+        // Verificar que se hizo la petición HTTP
+        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+
+        // Verificar que los datos están en caché
+        const cachedData = getCache<Banner[]>('banners:list');
+        expect(cachedData).toEqual(mockSuccessResponse);
+      });
+
+      it('debería usar el caché en lugar de hacer una nueva petición HTTP', async () => {
+        const mockResponse: AxiosResponse = {
+          data: {
+            data: mockSuccessResponse,
+            message: "Consulta realizada correctamente"
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+
+        // Primera llamada - hace la petición HTTP y guarda en caché
+        await bannersService.getBanners();
+        
+        // Segunda llamada - debería usar el caché
+        const result = await bannersService.getBanners();
+
+        // Verificar que solo se hizo una petición HTTP
+        expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
+        
+        // Verificar que se devolvieron los datos correctos
+        expect(result).toEqual(mockSuccessResponse);
+      });
+
+      it('debería usar el caché como fallback cuando hay error de red', async () => {
+        // Primero guardamos datos en caché
+        const mockResponse: AxiosResponse = {
+          data: {
+            data: mockSuccessResponse,
+            message: "Consulta realizada correctamente"
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any
+        };
+        mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+        await bannersService.getBanners();
+
+        // Ahora simulamos un error de red
+        const networkError: AxiosError = {
+          isAxiosError: true,
+          name: 'AxiosError',
+          message: 'Network Error',
+          config: {} as any,
+          toJSON: () => ({})
+        };
+        mockAxiosInstance.get.mockRejectedValueOnce(networkError);
+
+        // La llamada debería devolver los datos del caché
+        const result = await bannersService.getBanners();
+        expect(result).toEqual(mockSuccessResponse);
+      });
     });
   });
 });
