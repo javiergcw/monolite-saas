@@ -1,4 +1,6 @@
 import { API } from './env';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface ConfigState {
   baseURL: string;
@@ -16,24 +18,35 @@ class ConfigManager {
     };
   }
 
+  private readProjectPackageJson(): any {
+    try {
+      const packageJsonPath = path.join(process.cwd(), 'package.json');
+      if (fs.existsSync(packageJsonPath)) {
+        const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
+        return JSON.parse(packageJsonContent);
+      }
+    } catch (error) {
+      console.error('Error al leer el package.json del proyecto:', error);
+    }
+    return null;
+  }
+
   private getBaseURLFromPackageJson(): string {
     try {
-      // Buscar el package.json del proyecto que usa el paquete
-      const projectPackageJson = require(process.cwd() + '/package.json');
-      if (projectPackageJson.monolite && projectPackageJson.monolite.baseURL) {
+      const projectPackageJson = this.readProjectPackageJson();
+      if (projectPackageJson?.monolite?.baseURL) {
         return projectPackageJson.monolite.baseURL;
       }
     } catch (error) {
       console.error('No se pudo leer la URL base del package.json del proyecto');
     }
-    return `${API.BASE_URL}${API.VERSION}`;
+    return `${API.BASE_URL}/${API.VERSION}`;
   }
 
   private getLicenseKeyFromPackageJson(): string {
     try {
-      // Buscar el package.json del proyecto que usa el paquete
-      const projectPackageJson = require(process.cwd() + '/package.json');
-      if (projectPackageJson.monolite && projectPackageJson.monolite.licenseKey) {
+      const projectPackageJson = this.readProjectPackageJson();
+      if (projectPackageJson?.monolite?.licenseKey) {
         return projectPackageJson.monolite.licenseKey;
       }
     } catch (error) {
