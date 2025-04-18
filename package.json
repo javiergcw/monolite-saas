@@ -7,6 +7,18 @@
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./components/ErrorNotification": {
+      "types": "./dist/components/ErrorNotification.d.ts",
+      "import": "./dist/components/ErrorNotification.js",
+      "require": "./dist/components/ErrorNotification.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",

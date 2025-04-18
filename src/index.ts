@@ -9,6 +9,9 @@ import { categoriesService } from './services/categories';
 import { productsService } from './services/products';
 import { axiosService } from './services/axios';
 
+// Importaciones de componentes
+import { ErrorNotification } from './components/ErrorNotification';
+
 // Importaciones de tipos
 import type { Banner } from './types/banners';
 import type { Category, Subcategory } from './types/categories';
@@ -40,6 +43,12 @@ export const services = {
   products: productsService,
   axios: axiosService,
 };
+
+/**
+ * Componentes principales de la aplicación
+ * @namespace Components
+ */
+export { ErrorNotification };
 
 /**
  * Tipos principales de la aplicación
