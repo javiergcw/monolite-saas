@@ -24,7 +24,7 @@ import type { Banner, BannerResponse } from '../types/banners';
 export class BannersService {
   private static instance: BannersService;
   private readonly config = configManager.getConfig();
-  private readonly CACHE_TTL = 60; // 60 segundos
+  private readonly CACHE_TTL = 300; // 5 minutos
 
   private constructor() {}
 

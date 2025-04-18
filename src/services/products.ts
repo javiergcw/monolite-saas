@@ -36,7 +36,7 @@ import type {
 export class ProductsService {
   private static instance: ProductsService;
   private readonly config = configManager.getConfig();
-  private readonly CACHE_TTL = 60; // 60 segundos
+  private readonly CACHE_TTL = 120; // 2 minutos
 
   private constructor() {}
 

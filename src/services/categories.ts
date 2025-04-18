@@ -27,7 +27,7 @@ import type { Category, Subcategory, CategoryResponse } from '../types/categorie
 export class CategoriesService {
   private static instance: CategoriesService;
   private readonly config = configManager.getConfig();
-  private readonly CACHE_TTL = 60; // 60 segundos
+  private readonly CACHE_TTL = 3600; // 1 hora
 
   private constructor() {}
 
