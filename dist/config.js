@@ -2,33 +2,21 @@ import { API } from './env';
 class ConfigManager {
     constructor() {
         this.state = {
-            baseURL: this.getBaseURLFromPackageJson(),
-            licenseKey: this.getLicenseKeyFromPackageJson(),
+            baseURL: this.getBaseURL(),
+            licenseKey: this.getLicenseKey(),
         };
     }
-    getBaseURLFromPackageJson() {
-        try {
-            // Buscar el package.json del proyecto que usa el paquete
-            const projectPackageJson = require(process.cwd() + '/package.json');
-            if (projectPackageJson.monolite && projectPackageJson.monolite.baseURL) {
-                return projectPackageJson.monolite.baseURL;
-            }
+    getBaseURL() {
+        // Primero intentamos obtener de las variables de entorno
+        if (process.env.NEXT_PUBLIC_MONOLITE_BASE_URL) {
+            return process.env.NEXT_PUBLIC_MONOLITE_BASE_URL;
         }
-        catch (error) {
-            console.error('No se pudo leer la URL base del package.json del proyecto');
-        }
-        return `${API.BASE_URL}${API.VERSION}`;
+        return `${API.BASE_URL}/${API.VERSION}`;
     }
-    getLicenseKeyFromPackageJson() {
-        try {
-            // Buscar el package.json del proyecto que usa el paquete
-            const projectPackageJson = require(process.cwd() + '/package.json');
-            if (projectPackageJson.monolite && projectPackageJson.monolite.licenseKey) {
-                return projectPackageJson.monolite.licenseKey;
-            }
-        }
-        catch (error) {
-            console.error('No se pudo leer la clave de licencia del package.json del proyecto');
+    getLicenseKey() {
+        // Primero intentamos obtener de las variables de entorno
+        if (process.env.NEXT_PUBLIC_MONOLITE_LICENSE_KEY) {
+            return process.env.NEXT_PUBLIC_MONOLITE_LICENSE_KEY;
         }
         return API.DEFAULT_LICENSE_KEY;
     }
