@@ -299,7 +299,7 @@ describe('ProductsService', () => {
       // Verificaciones
       expect(result).toEqual(mockProduct);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'https://api.autoxpert.com.co/v2/products/26/?include_variations=true&group_attributes=true'
+        'https://api.autoxpert.com.co/v2/products/26?include_variations=true&group_attributes=true'
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });
