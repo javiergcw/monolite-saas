@@ -271,7 +271,6 @@ export class ProductsService {
 
     try {
       const url = URLBuilder.forProductVariations(id.toString())
-        .withTrailingSlash()
         .build();
 
       const response = await axiosService.getInstance().get<ProductVariationsResponse>(url.toString());
