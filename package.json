@@ -36,6 +36,7 @@
   "dependencies": {
     "@types/styled-components": "^5.1.34",
     "axios": "^1.8.4",
+    "monolite-saas": "github:javiergcw/monolite-saas",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "styled-components": "^6.1.17"

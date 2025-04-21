@@ -173,7 +173,6 @@ export class ProductsService {
 
     try {
       const url = URLBuilder.forProductSearch()
-        .withTrailingSlash()
         .build();
       
       url.searchParams.append('q', query);
