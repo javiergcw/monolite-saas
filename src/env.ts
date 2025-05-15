@@ -1,6 +1,6 @@
 // Constantes de la API
 const API = {
-  BASE_URL: 'https://api.autoxpert.com.co',
+  BASE_URL: 'https://gateway.makerstech.co',
   VERSION: 'v2',
   DEFAULT_LICENSE_KEY: '',
 } as const;

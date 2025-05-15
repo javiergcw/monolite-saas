@@ -12,7 +12,7 @@ jest.mock('../axios');
 jest.mock('../../config');
 jest.mock('../../env', () => ({
   API: {
-    BASE_URL: 'https://api.autoxpert.com.co',
+    BASE_URL: 'https://gateway.makerstech.co',
     VERSION: 'v2',
     DEFAULT_LICENSE_KEY: 'test-license-key'
   },
@@ -98,7 +98,7 @@ describe('BannersService', () => {
       // Verificaciones
       expect(result).toEqual(mockSuccessResponse);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'https://api.autoxpert.com.co/v2/banners/'
+        'https://gateway.makerstech.co/v2/banners/'
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });

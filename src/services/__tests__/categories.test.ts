@@ -31,7 +31,7 @@ jest.mock('../../config', () => {
   return {
     configManager: {
       getConfig: jest.fn().mockReturnValue({
-        baseURL: 'https://api.autoxpert.com.co',
+        baseURL: 'https://gateway.makerstech.co',
         licenseKey: 'AAAAAAAAAAAAAAAAEvvVEw0tkqMjxmm1Xn23GKuaLjtJqcJyqayhmgFgSA=='
       }),
       setBaseURL: jest.fn(),
@@ -112,7 +112,7 @@ describe('CategoriesService', () => {
       // Verificaciones
       expect(result).toEqual(mockSuccessResponse);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'https://api.autoxpert.com.co/v2/categories/'
+        'https://gateway.makerstech.co/v2/categories/'
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });
@@ -238,7 +238,7 @@ describe('CategoriesService', () => {
       // Verificaciones
       expect(result).toEqual(mockCategory);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        `https://api.autoxpert.com.co/v2/categories/${mockCategory.id}/`
+        `https://gateway.makerstech.co/v2/categories/${mockCategory.id}/`
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });

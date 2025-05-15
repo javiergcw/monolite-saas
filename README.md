@@ -21,7 +21,7 @@ Agrega la configuración en tu `package.json`:
 ```json
 {
   "monolite": {
-    "baseURL": "https://api.autoxpert.com.co",
+    "baseURL": "https://gateway.makerstech.co",
     "licenseKey": "tu-licencia-aqui"
   }
 }
@@ -33,7 +33,7 @@ Agrega la configuración en tu `package.json`:
 import { configManager } from 'monolite-saas';
 
 // Configurar la URL base
-configManager.setBaseURL('https://api.autoxpert.com.co');
+configManager.setBaseURL('https://gateway.makerstech.co');
 
 // Configurar la clave de licencia
 configManager.setLicenseKey('tu-licencia-aqui');

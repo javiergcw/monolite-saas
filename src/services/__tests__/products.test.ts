@@ -37,7 +37,7 @@ jest.mock('../../config', () => {
   return {
     configManager: {
       getConfig: jest.fn().mockReturnValue({
-        baseURL: 'https://api.autoxpert.com.co',
+        baseURL: 'https://gateway.makerstech.co',
         licenseKey: 'AAAAAAAAAAAAAAAAEvvVEw0tkqMjxmm1Xn23GKuaLjtJqcJyqayhmgFgSA=='
       }),
       setBaseURL: jest.fn(),
@@ -115,7 +115,7 @@ describe('ProductsService', () => {
       // Verificaciones
       expect(result).toEqual(mockSuccessResponse);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'https://api.autoxpert.com.co/v2/products/?include_variations=true&group_attributes=true'
+        'https://gateway.makerstech.co/v2/products/?include_variations=true&group_attributes=true'
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });
@@ -299,7 +299,7 @@ describe('ProductsService', () => {
       // Verificaciones
       expect(result).toEqual(mockProduct);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'https://api.autoxpert.com.co/v2/products/26?include_variations=true&group_attributes=true'
+        'https://gateway.makerstech.co/v2/products/26?include_variations=true&group_attributes=true'
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });
@@ -414,7 +414,7 @@ describe('ProductsService', () => {
       // Verificaciones
       expect(result).toEqual(mockSearchResponse);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'https://api.autoxpert.com.co/v2/products/search/?q=cami&page=1&limit=4'
+        'https://gateway.makerstech.co/v2/products/search/?q=cami&page=1&limit=4'
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });
@@ -517,7 +517,7 @@ describe('ProductsService', () => {
       // Verificaciones
       expect(result).toEqual(mockFilterResponse);
       expect(mockAxiosInstance.post).toHaveBeenCalledWith(
-        'https://api.autoxpert.com.co/v2/products/filter/by-sku/',
+        'https://gateway.makerstech.co/v2/products/filter/by-sku/',
         {
           skus: ['WKR-3-7-TIGER', 'JKRD-001'],
           page: 1,
