@@ -98,7 +98,7 @@ describe('BannersService', () => {
       // Verificaciones
       expect(result).toEqual(mockSuccessResponse);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'https://gateway.makerstech.co/v2/banners/'
+        'https://gateway.makerstech.co/banners/'
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });

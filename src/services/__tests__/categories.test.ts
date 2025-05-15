@@ -112,7 +112,7 @@ describe('CategoriesService', () => {
       // Verificaciones
       expect(result).toEqual(mockSuccessResponse);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'https://gateway.makerstech.co/v2/categories/'
+        'https://gateway.makerstech.co/categories/'
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });
@@ -238,7 +238,7 @@ describe('CategoriesService', () => {
       // Verificaciones
       expect(result).toEqual(mockCategory);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        `https://gateway.makerstech.co/v2/categories/${mockCategory.id}/`
+        `https://gateway.makerstech.co/categories/${mockCategory.id}/`
       );
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
     });
