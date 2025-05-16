@@ -1,7 +1,7 @@
 // Constantes de la API
 const API = {
   BASE_URL: 'https://gateway.makerstech.co',
-  VERSION: 'v2',
+  VERSION: '',
   DEFAULT_LICENSE_KEY: '',
 } as const;
 
