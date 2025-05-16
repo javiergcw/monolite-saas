@@ -13,7 +13,7 @@ jest.mock('../../config');
 jest.mock('../../env', () => ({
   API: {
     BASE_URL: 'https://gateway.makerstech.co',
-    VERSION: 'v2',
+    VERSION: '',
     DEFAULT_LICENSE_KEY: 'test-license-key'
   },
   ENDPOINTS: {
