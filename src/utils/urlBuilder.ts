@@ -2,17 +2,24 @@ import { API, ENDPOINTS } from '../env';
 
 export class URLBuilder {
   private baseUrl: string;
+  private version: string;
   private path: string;
   private addTrailingSlash: boolean;
 
   constructor() {
     this.baseUrl = API.BASE_URL;
+    this.version = API.VERSION;
     this.path = '';
     this.addTrailingSlash = false;
   }
 
   public setBaseUrl(baseUrl: string): URLBuilder {
     this.baseUrl = baseUrl;
+    return this;
+  }
+
+  public setVersion(version: string): URLBuilder {
+    this.version = version;
     return this;
   }
 
@@ -30,7 +37,7 @@ export class URLBuilder {
     const normalizedPath = this.addTrailingSlash && !this.path.endsWith('/') 
       ? `${this.path}/` 
       : this.path;
-    const url = new URL(`${this.baseUrl}/${normalizedPath}`);
+    const url = new URL(`${this.baseUrl}/${this.version}/${normalizedPath}`);
     return url;
   }
 

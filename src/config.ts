@@ -21,7 +21,7 @@ class ConfigManager {
     if (process.env.NEXT_PUBLIC_MONOLITE_BASE_URL) {
       return process.env.NEXT_PUBLIC_MONOLITE_BASE_URL;
     }
-    return API.BASE_URL;
+    return `${API.BASE_URL}/${API.VERSION}`;
   }
 
   private getLicenseKey(): string {
